@@ -4,8 +4,8 @@ from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 
 def email_finder(website_url):
-    emails = []
-    contact_links = []
+    emails = set()
+    contact_links = set()
     headers = {"User-Agent" : "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.61 Safari/537.36"}
 
 
@@ -18,9 +18,9 @@ def email_finder(website_url):
 
     for link in main_soup.find_all("a"):
         if "Kontakt" in link.text or "KONTAKT" in link.text or "Contact" in link.text or "CONTACT" in link.text or "Impressum" in link.text or "IMPRESSUM" in link.text or "kontakt" in link.text or "contact" in link.text or "impressum" in link.text:
-            contact_links.append(link)
-        elif "@" in link.text:
-            emails.append(link.text)
+            contact_links.add(link)
+        elif "@" in link.text or "(at)" in link.text:
+            emails.add(link.text)
     
 
     ### Go through all the contact links by going to the corresponding contact website, then save every string that contains "@" in emails.
@@ -43,12 +43,12 @@ def email_finder(website_url):
         words_in_page = contact_soup.body.get_text().split()
 
         for word in words_in_page:
-            if "@" in word:
-                emails.append(word)
+            if "@" in word or "(at)" in word:
+                emails.add(word)
 
         for link in contact_soup.find_all("a"):
-            if "@" in link.text:
-                emails.append(word)
+            if "@" in link.text or "(at)" in link.text:
+                emails.add(word)
 
 
     print("------------------------")
