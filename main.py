@@ -1,7 +1,6 @@
 from googlesearch import search
-import requests
+from requests_html import HTMLSession
 from bs4 import BeautifulSoup
-import re
 from urllib.parse import urlparse
 
 def email_finder(website_url):
@@ -9,8 +8,13 @@ def email_finder(website_url):
     contact_links = []
     headers = {"User-Agent" : "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.61 Safari/537.36"}
 
-    main_page = requests.get(website_url, headers = headers)
-    main_soup = BeautifulSoup(main_page.content, "lxml")
+
+    session = HTMLSession()
+
+    main_page = session.get(website_url, headers = headers)
+    main_soup = BeautifulSoup(main_page.html.raw_html, "lxml")
+
+    ### Get all links from the main page of the website, save the "contact-links" in contact_links and links that contain "@" in emails.
 
     for link in main_soup.find_all("a"):
         if "Kontakt" in link.text or "KONTAKT" in link.text or "Contact" in link.text or "CONTACT" in link.text or "Impressum" in link.text or "IMPRESSUM" in link.text or "kontakt" in link.text or "contact" in link.text or "impressum" in link.text:
@@ -19,20 +23,31 @@ def email_finder(website_url):
             emails.append(link.text)
     
 
+    ### Go through all the contact links by going to the corresponding contact website, then save every string that contains "@" in emails.
+
     for contact_link in contact_links:
         contact_url = contact_link["href"]
 
-        ### TODO Format the contact url correctly.
+        ### If href isn't a complete url.
         if "http" not in contact_url:
-            contact_url = website_url + "/" + contact_url
+            parts_of_url = urlparse(website_url)
+            if contact_url[0] == "/":
+                contact_url = parts_of_url.scheme + "://" + parts_of_url.netloc + contact_url
+            else:
+                contact_url = parts_of_url.scheme + "://" + parts_of_url.netloc + "/" + contact_url  
 
-        contact_page = requests.get(contact_url, headers = headers)
-        contact_soup = BeautifulSoup(contact_page.content, "lxml")
+        contact_page = session.get(contact_url, headers = headers)
+        contact_page.html.render()
+        contact_soup = BeautifulSoup(contact_page.html.raw_html, "lxml")
 
         words_in_page = contact_soup.body.get_text().split()
 
         for word in words_in_page:
             if "@" in word:
+                emails.append(word)
+
+        for link in contact_soup.find_all("a"):
+            if "@" in link.text:
                 emails.append(word)
 
 
