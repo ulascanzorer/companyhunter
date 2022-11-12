@@ -2,6 +2,7 @@ from googlesearch import search
 from requests_html import HTMLSession
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
+import re
 
 def email_finder(website_url):
     emails = set()
@@ -16,8 +17,11 @@ def email_finder(website_url):
 
     ### Get all links from the main page of the website, save the "contact-links" in contact_links and links that contain "@" in emails.
 
+    pattern = re.compile(r'([ck]onta[ck]t) | (impressum)', flags=re.IGNORECASE)
+
+
     for link in main_soup.find_all("a"):
-        if "Kontakt" in link.text or "KONTAKT" in link.text or "Contact" in link.text or "CONTACT" in link.text or "Impressum" in link.text or "IMPRESSUM" in link.text or "kontakt" in link.text or "contact" in link.text or "impressum" in link.text:
+        if re.search(pattern, link.text):
             contact_links.add(link)
         elif "@" in link.text or "(at)" in link.text:
             emails.add(link.text)
@@ -59,6 +63,7 @@ def email_finder(website_url):
 
 
 if __name__ == "__main__":
+
     # Get the query to search for.
 
     query = input("Main theme of the companies to hunt:\n")
