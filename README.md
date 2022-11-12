@@ -1,2 +1,2 @@
 # companyhunter
-Hunts down company emails from the web.
+Hunts down company emails from the web. (Currently still in development)
