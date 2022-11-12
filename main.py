@@ -15,19 +15,20 @@ def email_finder(website_url):
     main_page = session.get(website_url, headers = headers)
     main_soup = BeautifulSoup(main_page.html.raw_html, "lxml")
 
-    ### Get all links from the main page of the website, save the "contact-links" in contact_links and links that contain "@" in emails.
+    ### Get all links from the main page of the website, save the "contact-links" in contact_links and links that match the email pattern in emails.
 
-    pattern = re.compile(r'([ck]onta[ck]t) | (impressum)', flags=re.IGNORECASE)
-
+    ### Define some patterns to detect contact links or 'valid' emails.
+    contact_link_pattern = re.compile(r'([ck]onta[ck]t) | (impressum)', flags=re.IGNORECASE)
+    email_pattern = re.compile(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+')
 
     for link in main_soup.find_all("a"):
-        if re.search(pattern, link.text):
+        if re.search(contact_link_pattern, link.text):
             contact_links.add(link)
-        elif "@" in link.text or "(at)" in link.text:
-            emails.add(link.text)
+        elif email_result := re.search(email_pattern, link.text):
+            emails.add(email_result.group(0))
     
 
-    ### Go through all the contact links by going to the corresponding contact website, then save every string that contains "@" in emails.
+    ### Go through all the contact links by going to the corresponding contact website, then save every string that matches the email pattern.
 
     for contact_link in contact_links:
         contact_url = contact_link["href"]
@@ -47,17 +48,17 @@ def email_finder(website_url):
         words_in_page = contact_soup.body.get_text().split()
 
         for word in words_in_page:
-            if "@" in word or "(at)" in word:
-                emails.add(word)
+            if email_result := re.search(email_pattern, word):
+                emails.add(email_result.group(0))
 
         for link in contact_soup.find_all("a"):
-            if "@" in link.text or "(at)" in link.text:
-                emails.add(word)
+            if email_result := re.search(email_pattern, link.text):
+                emails.add(email_result.group(0))
 
 
     print("------------------------")
     print(website_url)
-    print(emails)
+    print("Emails from this website: ", emails)
     print("------------------------")
     return emails
 
