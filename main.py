@@ -72,10 +72,27 @@ if __name__ == "__main__":
     # Go through all the links from google search and save them in a list.
 
     website_urls = []
+    all_emails = []
 
     for i in search(query, tld="de", num = 30, stop = 30, pause = 2):
         website_urls.append(i)
         print(i)
 
-    for url in website_urls:
-        email_finder(url)
+    # Create save file (or overwrite it).
+    save_file = open("emails.txt", "w")
+    save_file.close()
+
+    # Open save file again in append mode.
+
+    with open("emails.txt", "a") as save_file:
+        for url in website_urls:
+            try:
+                if emails_from_url := email_finder(url):
+                    all_emails.append(emails_from_url)
+                    for email in emails_from_url:
+                        save_file.write(email + "\n")
+            except:
+                print("An expection has occurred with url: " + url)
+
+    print(all_emails)
+
