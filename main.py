@@ -69,12 +69,16 @@ if __name__ == "__main__":
 
     query = input("Main theme of the companies to hunt:\n")
 
+    # Choose how many results are wanted to be searched.
+
+    number_of_results = int(input("Number of results to get:\n"))
+
     # Go through all the links from google search and save them in a list.
 
     website_urls = []
     all_emails = []
 
-    for i in search(query, tld="de", num = 30, stop = 30, pause = 2):
+    for i in search(query, num_results = number_of_results):
         website_urls.append(i)
         print(i)
 
